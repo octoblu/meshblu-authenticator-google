@@ -1,14 +1,17 @@
-DeviceController  = require './controllers/device-controller'
-SessionController = require './controllers/session-controller'
+passport = require 'passport'
 
-class Routes
-  constructor: (@app, uuid, meshblu) ->
-    @deviceController  = new DeviceController uuid, meshblu
-    @sessionController = new SessionController uuid, meshblu
+class Router
+  constructor: (@app) ->
 
   register: =>
-    @app.get  '/', (request, response) => response.status(200).send status: 'online'
-    @app.post '/devices',                @deviceController.create
-    @app.post '/devices/:uuid/sessions', @sessionController.create
+    @app.get '/', (request, response) =>
+      response.render 'index'
 
-module.exports = Routes
+    @app.get '/login', passport.authenticate 'google', scope: ['profile', 'email']
+
+    @app.get '/api/auth/callback',
+      passport.authenticate('google', { failureRedirect: '/login' }),
+      (request, response) =>
+        response.redirect '/'
+
+module.exports = Router
