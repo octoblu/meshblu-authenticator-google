@@ -5,7 +5,7 @@ debug = require('debug')('meshblu-google-authenticator:config')
 googleOauthConfig =
   clientID: process.env.GOOGLE_CLIENT_ID
   clientSecret: process.env.GOOGLE_CLIENT_SECRET
-  callbackURL: 'http://localhost:8008/api/auth/callback'
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
 
 class GoogleConfig
   onAuthentication: (accessToken, refreshToken, profile, done) =>
