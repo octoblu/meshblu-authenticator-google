@@ -15,24 +15,33 @@ class GoogleConfig
 
   onAuthentication: (accessToken, refreshToken, profile, done) =>
     debug 'Authenticated', accessToken
+    profileId = profile?.id
     authenticatorUuid = @meshbluJSON.uuid
     authenticatorName = @meshbluJSON.name
     deviceModel = new DeviceAuthenticator authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
     query = {}
-    query[authenticatorUuid + '.id'] = profile.id
+    query[authenticatorUuid + '.id'] = profileId
     device = 
       name: profile.name
       type: 'octoblu:user'
 
-    debug 'deviceModel.create', query, device, profile.id, accessToken
-    deviceCallback = (error, createdDevice) => 
+    deviceCreateCallback = (error, createdDevice) => 
       debug 'device create error', error if error?
       debug 'device created', createdDevice
-      createdDevice.id = profile.id
+      createdDevice?.id = profileId
       done error, createdDevice
 
-    deviceModel.create query, device, profile.id, accessToken, deviceCallback
-
+    deviceFindCallback = (error, foundDevice) =>
+      debug 'device find error', error if error?
+      debug 'device find', foundDevice
+      if foundDevice
+        foundDevice?.id = profileId
+        return done null, foundDevice
+      deviceModel.create query, device, profileId, accessToken, deviceCreateCallback
+ 
+    debug 'device query', query
+    deviceModel.findVerified query, accessToken, deviceFindCallback
+    
   register: =>
     passport.use new GoogleStrategy googleOauthConfig, @onAuthentication
 
