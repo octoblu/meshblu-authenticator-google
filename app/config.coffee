@@ -10,20 +10,27 @@ googleOauthConfig =
   callbackURL: process.env.GOOGLE_CALLBACK_URL
 
 class GoogleConfig
-  constructor: (@meshbluConn, @meshbluJSON) =>
+  constructor: (@meshbluConn, @meshbluJSON) ->
     @meshbludb = new MeshbluDB @meshbluConn
 
   onAuthentication: (accessToken, refreshToken, profile, done) =>
     debug 'Authenticated', accessToken
     authenticatorUuid = @meshbluJSON.uuid
     authenticatorName = @meshbluJSON.name
-    deviceModel = new Device authenticatorUuid, authenticatorName, meshblu: @meshblu, meshbludb: @meshbludb
-    query = authenticatorUuid + '.id' : profile.id
+    deviceModel = new Device authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
+    query = {}
+    query[authenticatorUuid + '.id'] = profile.id
     device = 
       name: profile.name
       type: 'octoblu:user'
 
-    deviceCallback = (error, createdDevice) => done error, createdDevice
+    debug 'deviceModel.create', query, device, profile.id, accessToken
+    deviceCallback = (error, createdDevice) => 
+      debug 'device create error', error if error?
+      debug 'device created', createdDevice
+      createdDevice.id = profile.id
+      done error, createdDevice
+
     deviceModel.create query, device, profile.id, accessToken, deviceCallback
 
   register: =>
