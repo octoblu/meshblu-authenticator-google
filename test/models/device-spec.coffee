@@ -33,11 +33,11 @@ describe 'Device', ->
     describe 'when exists yields true', ->
       beforeEach (done) ->
         @sut.exists = sinon.stub().yields true
-        @sut.insert = sinon.spy()
+        @sut.insert = sinon.stub().yields new Error @sut.ERROR_DEVICE_ALREADY_EXISTS
         @sut.create 'google.id': '595', {}, '','','','', (@error) => done()
 
-      it 'should not call insert', ->
-        expect(@sut.insert).not.to.have.been.called
+      it 'should call insert', ->
+        expect(@sut.insert).to.have.been.called
 
       it 'should have a device already exists error', ->
         expect(@error.message).to.equal @sut.ERROR_DEVICE_ALREADY_EXISTS
@@ -49,7 +49,7 @@ describe 'Device', ->
         @sut.create 'google.id': '595', {google:{id: 123}}, '','','',''
 
       it 'should call insert', ->
-        expect(@sut.insert).to.have.been.calledWith {google:{id: 123}}
+        expect(@sut.insert).to.have.been.calledWith 'google.id': '595', {google:{id: 123}}
 
     describe 'when exists yields false and insert yields an error', ->
       beforeEach (done) ->
@@ -108,21 +108,21 @@ describe 'Device', ->
 
   describe '->exists', ->
     beforeEach ->
-      @meshbludb = findOne: =>
+      @meshbludb = {}
       @dependencies = meshbludb: @meshbludb
       @sut = new Device @dependencies
 
     describe 'when exists is called', ->
       beforeEach ->
-        sinon.spy @meshbludb, 'findOne'
-        @sut.exists 'google.id': '123'
+        @meshbludb.findOne = sinon.spy()
+        @sut.exists {'google.id': '123'}
 
       it 'should call findOne with query', ->
         expect(@meshbludb.findOne).to.have.been.calledWith 'google.id': '123'
 
-    describe 'when exists yields an device', ->
+    describe 'when findOne yields a device', ->
       beforeEach (done) ->
-        sinon.stub(@meshbludb, 'findOne').yields null, uuid: 'label-maker'
+        @meshbludb.findOne = sinon.stub().yields null, uuid: 'label-maker'
         @sut.exists 'google.id' : '12350', (@exists) => done()
 
       it 'should have an device', ->
@@ -130,7 +130,7 @@ describe 'Device', ->
 
     describe 'when exists yields nothing', ->
       beforeEach (done) ->
-        sinon.stub(@meshbludb, 'findOne').yields null
+        @meshbludb.findOne = sinon.stub().yields null, null
         @sut.exists 'google.id' : '12350', (@exists) => done()
 
       it 'should not have an device', ->
@@ -140,13 +140,18 @@ describe 'Device', ->
     beforeEach ->
       @meshbludb = {}
       @meshbludb.insert = sinon.stub()
+      @meshbludb.findOne = sinon.stub().yields()
       @dependencies = {meshbludb:@meshbludb}
       @sut = new Device @dependencies
 
     describe 'when insert is called', ->
       beforeEach (done) ->
         @meshbludb.insert.yields null, {}
-        @sut.insert {'pen':'sharpie'}, (@error, @device) => done()
+        @sut.exists = sinon.stub().yields false
+        @sut.insert {'something':'tall'}, {'pen':'sharpie'}, (@error, @device) => done()
+
+      it 'should call exists', ->
+        expect(@sut.exists).to.have.been.called
 
       it 'should call meshbludb.insert', ->
         expect(@meshbludb.insert).to.have.been.calledWith {'pen': 'sharpie'}
@@ -156,7 +161,7 @@ describe 'Device', ->
 
     describe 'when insert is called with a different device', ->
       beforeEach ->
-        @sut.insert {'skinny': 'stick'}
+        @sut.insert {'something':'black'}, {'skinny': 'stick'}
 
       it 'should call meshbludb.insert', ->
         expect(@meshbludb.insert).to.have.been.calledWith {'skinny': 'stick'}

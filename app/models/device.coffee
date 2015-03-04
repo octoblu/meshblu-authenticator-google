@@ -9,15 +9,12 @@ class Device
     @meshblu = dependencies.meshblu
 
   create: (query, data, authenticatorUuid, authenticatorName, id, secret, callback=->) =>
-    @exists query, (deviceExists) =>
-      return callback new Error @ERROR_DEVICE_ALREADY_EXISTS if deviceExists
-      @insert data, (error, device) =>
+    @insert query, data, (error, device) =>
+      return callback error if error?
+      @hashSecret secret, (error, hashedSecret) =>
         return callback error if error?
-        @hashSecret secret, (error, hashedSecret) =>
-          return callback error if error?
-          updateData = @buildDeviceUpdate(device.uuid, authenticatorUuid, authenticatorName, id, hashedSecret)
-          @update updateData, callback
-
+        updateData = @buildDeviceUpdate(device.uuid, authenticatorUuid, authenticatorName, id, hashedSecret)
+        @update updateData, callback
 
   verifySignature: (data) =>
     @meshblu.verify _.omit(data, 'signature'), data.signature
@@ -29,8 +26,10 @@ class Device
   hashSecret: (secret, callback=->) =>
     bcrypt.hash secret, 8, callback
 
-  insert: (data, callback=->) =>
-    @meshbludb.insert data, callback
+  insert: (query, data, callback=->) =>
+    @exists query, (deviceExists) =>
+      return callback new Error @ERROR_DEVICE_ALREADY_EXISTS if deviceExists 
+      @meshbludb.insert data, callback
 
   update: (data, callback=->) =>
     @meshbludb.update data, callback
