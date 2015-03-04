@@ -16,6 +16,7 @@ class GoogleConfig
   onAuthentication: (accessToken, refreshToken, profile, done) =>
     debug 'Authenticated', accessToken
     profileId = profile?.id
+    fakeSecret = 'google-authenticator'
     authenticatorUuid = @meshbluJSON.uuid
     authenticatorName = @meshbluJSON.name
     deviceModel = new DeviceAuthenticator authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
@@ -37,10 +38,10 @@ class GoogleConfig
       if foundDevice
         foundDevice?.id = profileId
         return done null, foundDevice
-      deviceModel.create query, device, profileId, accessToken, deviceCreateCallback
+      deviceModel.create query, device, profileId, fakeSecret, deviceCreateCallback
  
     debug 'device query', query
-    deviceModel.findVerified query, accessToken, deviceFindCallback
+    deviceModel.findVerified query, fakeSecret, deviceFindCallback
     
   register: =>
     passport.use new GoogleStrategy googleOauthConfig, @onAuthentication
