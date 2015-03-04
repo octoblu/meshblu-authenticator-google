@@ -45,6 +45,7 @@ catch
   meshbluJSON =
     uuid:   process.env.GOOGLE_AUTHENTICATOR_UUID
     token:  process.env.GOOGLE_AUTHENTICATOR_TOKEN
+    name:   process.env.GOOGLE_AUTHENTICATOR_NAME
     server: process.env.MESHBLU_HOST
     port:   process.env.MESHBLU_PORT
 
@@ -57,10 +58,10 @@ meshbluConn.on 'ready', =>
     debug "Meshblu Google Authenticator..."
     debug "Listening at localhost:#{port}"
 
-    config = new Config meshbluConn
+    config = new Config meshbluConn, meshbluJSON
     config.register()
 
-    router = new Router(app)
+    router = new Router app
     router.register()
 
 meshbluConn.on 'notReady', =>

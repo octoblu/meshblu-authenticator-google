@@ -5,29 +5,29 @@ class DeviceAuthenticator
 
   ERROR_DEVICE_ALREADY_EXISTS : 'device already exists'
 
-  constructor: (dependencies={})->
+  constructor: (@authenticatorUuid, @authenticatorName, dependencies={})->
     @meshbludb = dependencies.meshbludb
     @meshblu = dependencies.meshblu
 
-  buildDeviceUpdate: (deviceUuid, authenticatorUuid, name, id, hashedSecret) =>
+  buildDeviceUpdate: (deviceUuid, user_id, hashedSecret) =>
     data = {
-      id: id
-      name: name
+      id: user_id
+      name: @authenticatorName
       secret: hashedSecret
     }
     signature = @meshblu.sign(data)
     deviceUpdate = {
       uuid: deviceUuid
     }
-    deviceUpdate[authenticatorUuid] = _.defaults({signature: signature}, data)
+    deviceUpdate[@authenticatorUuid] = _.defaults({signature: signature}, data)
     return deviceUpdate
 
-  create: (query, data, authenticatorUuid, authenticatorName, id, secret, callback=->) =>
+  create: (query, data, user_id, secret, callback=->) =>
     @insert query, data, (error, device) =>
       return callback error if error?
-      @hashSecret secret, (error, hashedSecret) =>
+      @hashSecret secret + device.uuid, (error, hashedSecret) =>
         return callback error if error?
-        updateData = @buildDeviceUpdate(device.uuid, authenticatorUuid, authenticatorName, id, hashedSecret)
+        updateData = @buildDeviceUpdate(device.uuid, user_id, hashedSecret)
         @update updateData, callback
 
   exists: (query, callback=->) =>
@@ -39,7 +39,7 @@ class DeviceAuthenticator
       return callback error if error?
       devices = _.filter devices, (device) =>
         return false unless @verifySignature device
-        return false unless @verifySecret password, device.secret
+        return false unless @verifySecret password + device.uuid, device.secret
         return true
 
       callback null, devices

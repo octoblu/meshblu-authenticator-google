@@ -7,11 +7,11 @@ describe 'Device', ->
       @meshblu = {}
       @meshblu.sign = sinon.stub()
       @dependencies = {meshblu:@meshblu}
-      @sut = new Device @dependencies
+      @sut = new Device '1', 'name', @dependencies
 
     describe 'when called with data', ->
       beforeEach ->
-        @sut.buildDeviceUpdate "auuid", 'authenticators-r-us', 'name', '1', "pretendyoucantreadthis"
+        @sut.buildDeviceUpdate "auuid", '1', "pretendyoucantreadthis"
 
       it 'should call meshblu.sign', ->
         expect(@meshblu.sign).to.have.been.calledWith {id: '1', name: 'name', secret: 'pretendyoucantreadthis'}
@@ -20,12 +20,12 @@ describe 'Device', ->
     beforeEach ->
       @meshblu = sinon.stub()
       @dependencies = {meshblu: @meshblu}
-      @sut = new Device @dependencies
+      @sut = new Device 'auth-id', 'authenticator', @dependencies
 
     describe 'calling exists', ->
       beforeEach ->
         @sut.exists = sinon.spy()
-        @sut.create 'google.id': '959', {}, '','','',''
+        @sut.create 'google.id': '959', {}, 'secret'
 
       it 'should call exists', ->
         expect(@sut.exists).to.have.been.calledWith 'google.id' : '959'
@@ -34,7 +34,7 @@ describe 'Device', ->
       beforeEach (done) ->
         @sut.exists = sinon.stub().yields true
         @sut.insert = sinon.stub().yields new Error @sut.ERROR_DEVICE_ALREADY_EXISTS
-        @sut.create 'google.id': '595', {}, '','','','', (@error) => done()
+        @sut.create 'google.id': '595', {}, 'id', 'secret', (@error) => done()
 
       it 'should call insert', ->
         expect(@sut.insert).to.have.been.called
@@ -46,7 +46,7 @@ describe 'Device', ->
       beforeEach ->
         @sut.exists = sinon.stub().yields false
         @sut.insert = sinon.spy()
-        @sut.create 'google.id': '595', {google:{id: 123}}, '','','',''
+        @sut.create 'google.id': '595', {google:{id: 123}}, 'id', 'secret'
 
       it 'should call insert', ->
         expect(@sut.insert).to.have.been.calledWith 'google.id': '595', {google:{id: 123}}
@@ -55,7 +55,7 @@ describe 'Device', ->
       beforeEach (done) ->
         @sut.exists = sinon.stub().yields false
         @sut.insert = sinon.stub().yields new Error
-        @sut.create 'google.id': '595', {}, '','','','', (@error) => done()
+        @sut.create 'google.id': '595', {}, 'id', 'secret', (@error) => done()
 
       it 'should have an error', ->
         expect(@error).to.exist
@@ -67,17 +67,17 @@ describe 'Device', ->
         @sut.insert = sinon.stub().yields null, {uuid: 'wobbly-table'}
         @sut.hashSecret = sinon.stub().yields null
         @sut.update = sinon.stub().yields null
-        @sut.create 'google.id': '595', {}, '','','','secret', (@error) => done()
+        @sut.create 'google.id': '595', {}, 'id', 'secret', (@error) => done()
 
       it 'should call hashSecret', ->
-        expect(@sut.hashSecret).to.have.been.calledWith 'secret'
+        expect(@sut.hashSecret).to.have.been.calledWith 'secret' + 'wobbly-table'
 
     describe 'when exists yields false and insert yields a device and hashSecret yields an error', ->
       beforeEach (done) ->
         @sut.exists = sinon.stub().yields false
         @sut.insert = sinon.stub().yields null, {uuid: 'wobbly-table'}
         @sut.hashSecret = sinon.stub().yields new Error
-        @sut.create 'google.id': '595', {}, '','','',null, (@error) => done()
+        @sut.create 'google.id': '595', {}, null, null, (@error) => done()
 
       it 'should have an error', ->
         expect(@error).to.exist
@@ -89,28 +89,16 @@ describe 'Device', ->
         @sut.insert = sinon.stub().yields null, {uuid: 'wobbly-table'}
         @sut.hashSecret = sinon.stub().yields null, '$$$$$$$$$$'
         @sut.update = sinon.stub().yields null
-        @sut.create 'google.id': '595', {}, 'auth-id', 'authenticator', '1', 'secret', (@error) => done()
+        @sut.create 'google.id': '595', {}, '1', 'secret', (@error) => done()
 
       it 'should call update', ->
         expect(@sut.update).to.have.been.calledWith {uuid: 'wobbly-table', 'auth-id': {name : 'authenticator', id: '1', secret: '$$$$$$$$$$', signature: 'trust-me'}}
-
-    describe 'when creating a different device and exists yields false and insert yields a device and hashSecret yields a secret', ->
-      beforeEach (done) ->
-        @meshblu.sign = sinon.stub().returns 'i-know-what-you-did'
-        @sut.exists = sinon.stub().yields false
-        @sut.insert = sinon.stub().yields null, {uuid: 'terrible-soda'}
-        @sut.hashSecret = sinon.stub().yields null, '########'
-        @sut.update = sinon.stub().yields null
-        @sut.create 'google.id': '595', {}, 'not-auth-id', 'also-an-authenticator', '11', 'not-so-secret', (@error) => done()
-
-      it 'should call update', ->
-        expect(@sut.update).to.have.been.calledWith {uuid: 'terrible-soda', 'not-auth-id': {name : 'also-an-authenticator', id: '11', secret: '########', signature: 'i-know-what-you-did'}}
 
   describe '->exists', ->
     beforeEach ->
       @meshbludb = {}
       @dependencies = meshbludb: @meshbludb
-      @sut = new Device @dependencies
+      @sut = new Device '', '', @dependencies
 
     describe 'when exists is called', ->
       beforeEach ->
@@ -142,7 +130,7 @@ describe 'Device', ->
       @meshbludb.insert = sinon.stub()
       @meshbludb.findOne = sinon.stub().yields()
       @dependencies = {meshbludb:@meshbludb}
-      @sut = new Device @dependencies
+      @sut = new Device '', '', @dependencies
 
     describe 'when insert is called', ->
       beforeEach (done) ->
@@ -168,7 +156,7 @@ describe 'Device', ->
 
   describe '->hashSecret', ->
     beforeEach ->
-      @sut = new Device
+      @sut = new Device {}
 
     describe 'when hashSecret is called', ->
       beforeEach (done) ->
@@ -189,7 +177,7 @@ describe 'Device', ->
       @meshbludb = {}
       @meshbludb.update = sinon.stub()
       @dependencies = {meshbludb:@meshbludb}
-      @sut = new Device @dependencies
+      @sut = new Device '', '', @dependencies
 
     describe 'when update yields an error', ->
       beforeEach (done) ->
@@ -212,7 +200,7 @@ describe 'Device', ->
       @meshblu = {}
       @meshblu.verify = sinon.spy()
       @dependencies = {meshblu: @meshblu}
-      @sut = new Device @dependencies
+      @sut = new Device '', '', @dependencies
 
     describe 'when called', ->
       beforeEach ->
@@ -232,7 +220,7 @@ describe 'Device', ->
     beforeEach ->
       @meshbludb = {}
       @dependencies = meshbludb: @meshbludb
-      @sut = new Device @dependencies
+      @sut = new Device '', '', @dependencies
 
     describe 'when find yields an error', ->
       beforeEach (done) ->
@@ -256,7 +244,7 @@ describe 'Device', ->
         expect(@sut.verifySignature).to.have.been.calledWith uuid: 1, signature: 2, secret: '######'
 
       it 'should call verifySecret', ->
-        expect(@sut.verifySecret).to.have.been.calledWith 'password', '######'
+        expect(@sut.verifySecret).to.have.been.calledWith 'password' + 1, '######'
 
       it 'should have one device', ->
         expect(@devices).to.deep.equal []
@@ -275,7 +263,7 @@ describe 'Device', ->
         expect(@sut.verifySignature).to.have.been.calledWith uuid: 7, signature: 8, secret: '######'
 
       it 'should call verifySecret', ->
-        expect(@sut.verifySecret).to.have.been.calledWith 'password', '######'
+        expect(@sut.verifySecret).to.have.been.calledWith 'password' + 7, '######'
 
       it 'should have one device', ->
         expect(@devices).to.deep.equal [uuid: 7, signature: 8, secret: '######']
@@ -285,7 +273,7 @@ describe 'Device', ->
         @meshbludb.find = sinon.stub().yields null, [uuid: 7, signature: 8, secret: 8]
         @sut.verifySignature = sinon.stub().returns false
         @sut.verifySecret = sinon.stub().returns false
-        @sut.findVerified {something: 'less-important'}, 'password', (error, @devices) => done()
+        @sut.findVerified {something: 'less-important'}, 'password' + 7, (error, @devices) => done()
 
       it 'should call meshblu.find', ->
         expect(@meshbludb.find).to.have.been.calledWith {something : 'less-important'}
@@ -313,14 +301,14 @@ describe 'Device', ->
         expect(@sut.verifySignature).to.have.been.calledWith uuid: 4, signature: 5, secret: '######'
 
       it 'should call verifySecret', ->
-        expect(@sut.verifySecret).to.have.been.calledWith 'password', '######'
+        expect(@sut.verifySecret).to.have.been.calledWith 'password' + 4, '######'
 
       it 'should have one device', ->
         expect(@devices).to.deep.equal [uuid: 4, signature: 5, secret: '######']
 
   describe '->verifySecret', ->
     beforeEach ->
-      @sut = new Device
+      @sut = new Device '', ''
 
     describe 'when called with valid secret', ->
       beforeEach ->
