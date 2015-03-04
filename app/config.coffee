@@ -1,6 +1,6 @@
 passport = require 'passport'
 GoogleStrategy = require('passport-google-oauth2').Strategy
-Device = require './models/device-authenticator'
+{DeviceAuthenticator} = require 'meshblu-authenticator-core'
 MeshbluDB = require 'meshblu-db'
 debug = require('debug')('meshblu-google-authenticator:config')
 
@@ -17,7 +17,7 @@ class GoogleConfig
     debug 'Authenticated', accessToken
     authenticatorUuid = @meshbluJSON.uuid
     authenticatorName = @meshbluJSON.name
-    deviceModel = new Device authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
+    deviceModel = new DeviceAuthenticator authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
     query = {}
     query[authenticatorUuid + '.id'] = profile.id
     device = 
