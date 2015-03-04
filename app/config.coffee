@@ -18,8 +18,13 @@ class GoogleConfig
     authenticatorUuid = @meshbluJSON.uuid
     authenticatorName = @meshbluJSON.name
     deviceModel = new Device authenticatorUuid, authenticatorName, meshblu: @meshblu, meshbludb: @meshbludb
-    # deviceModel.create 
-    done null, {id: profile.id, name: profile.name}
+    query = authenticatorUuid + '.id' : profile.id
+    device = 
+      name: profile.name
+      type: 'octoblu:user'
+
+    deviceCallback = (error, createdDevice) => done error, createdDevice
+    deviceModel.create query, device, profile.id, accessToken, deviceCallback
 
   register: =>
     passport.use new GoogleStrategy googleOauthConfig, @onAuthentication

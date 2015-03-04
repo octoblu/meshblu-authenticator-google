@@ -28,7 +28,8 @@ class DeviceAuthenticator
       @hashSecret secret + device.uuid, (error, hashedSecret) =>
         return callback error if error?
         updateData = @buildDeviceUpdate(device.uuid, user_id, hashedSecret)
-        @update updateData, callback
+        @update updateData, (error) =>
+          callback error, device
 
   exists: (query, callback=->) =>
     @meshbludb.findOne query, (error, device) =>
@@ -42,7 +43,7 @@ class DeviceAuthenticator
         return false unless @verifySecret password + device.uuid, device.secret
         return true
 
-      callback null, devices
+      callback null, _.first devices
 
   hashSecret: (secret, callback=->) =>
     bcrypt.hash secret, 8, callback
