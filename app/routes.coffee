@@ -10,7 +10,7 @@ class Router
 
     @app.get '/login', @storeCallbackUrl, passport.authenticate 'google', scope: ['profile', 'email']
 
-    @app.get '/api/auth/callback', passport.authenticate('google', { failureRedirect: '/login' }), @afterPassportLogin
+    @app.get '/oauthcallback', passport.authenticate('google', { failureRedirect: '/login' }), @afterPassportLogin
 
   afterPassportLogin: (request, response) =>
     {callbackUrl} = request.session
