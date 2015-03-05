@@ -6,8 +6,7 @@ class Router
   constructor: (@app) ->
 
   register: =>
-    @app.get '/', (request, response) =>
-      response.render 'index'
+    @app.get '/', @defaultRoute
 
     @app.get '/login', @storeCallbackUrl, passport.authenticate 'google', scope: ['profile', 'email']
 
@@ -22,6 +21,9 @@ class Router
     uriParams.query.uuid = request.user.uuid
     uriParams.query.token = request.user.token
     return response.redirect(url.format uriParams)
+
+  defaultRoute: (request, response) =>
+    response.render 'index'
 
   storeCallbackUrl: (request, response, next) =>
     request.session.callbackUrl = request.query.callbackUrl
