@@ -6,7 +6,7 @@ class Router
   constructor: (@app) ->
 
   register: =>
-    @app.get '/', @defaultRoute
+    @app.get  '/', (request, response) => response.status(200).send status: 'online'
 
     @app.get '/login', @storeCallbackUrl, passport.authenticate 'google', scope: ['profile', 'email']
 
