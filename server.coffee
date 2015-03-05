@@ -43,9 +43,9 @@ try
   meshbluJSON  = require './meshblu.json'
 catch
   meshbluJSON =
-    uuid:   process.env.GOOGLE_AUTHENTICATOR_UUID
-    token:  process.env.GOOGLE_AUTHENTICATOR_TOKEN
-    name:   process.env.GOOGLE_AUTHENTICATOR_NAME
+    uuid:   process.env.MESHBLU_GOOGLE_AUTHENTICATOR_UUID
+    token:  process.env.MESHBLU_GOOGLE_AUTHENTICATOR_TOKEN
+    name:   process.env.MESHBLU_GOOGLE_AUTHENTICATOR_NAME
     server: process.env.MESHBLU_HOST
     port:   process.env.MESHBLU_PORT
 
