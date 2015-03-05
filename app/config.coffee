@@ -8,13 +8,13 @@ googleOauthConfig =
   clientID: process.env.GOOGLE_CLIENT_ID
   clientSecret: process.env.GOOGLE_CLIENT_SECRET
   callbackURL: process.env.GOOGLE_CALLBACK_URL
+  passReqToCallback: true
 
 class GoogleConfig
   constructor: (@meshbluConn, @meshbluJSON) ->
     @meshbludb = new MeshbluDB @meshbluConn
 
-  onAuthentication: (accessToken, refreshToken, profile, done) =>
-    debug 'Authenticated', accessToken
+  onAuthentication: (request, accessToken, refreshToken, profile, done) =>
     profileId = profile?.id
     fakeSecret = 'google-authenticator'
     authenticatorUuid = @meshbluJSON.uuid
@@ -22,27 +22,25 @@ class GoogleConfig
     deviceModel = new DeviceAuthenticator authenticatorUuid, authenticatorName, meshblu: @meshbluConn, meshbludb: @meshbludb
     query = {}
     query[authenticatorUuid + '.id'] = profileId
-    device = 
+    device =
       name: profile.name
       type: 'octoblu:user'
 
-    deviceCreateCallback = (error, createdDevice) => 
-      debug 'device create error', error if error?
-      debug 'device created', createdDevice
-      createdDevice?.id = profileId
-      done error, createdDevice
+    getDeviceToken = (uuid) =>
+      @meshbluConn.generateAndStoreToken uuid: uuid, (device) =>
+        device.id = profileId
+        done null, device
+
+    deviceCreateCallback = (error, createdDevice) =>
+      getDeviceToken createdDevice?.uuid
 
     deviceFindCallback = (error, foundDevice) =>
-      debug 'device find error', error if error?
-      debug 'device find', foundDevice
-      if foundDevice
-        foundDevice?.id = profileId
-        return done null, foundDevice
+      if foundDevice?
+        return getDeviceToken foundDevice.uuid
       deviceModel.create query, device, profileId, fakeSecret, deviceCreateCallback
- 
-    debug 'device query', query
+
     deviceModel.findVerified query, fakeSecret, deviceFindCallback
-    
+
   register: =>
     passport.use new GoogleStrategy googleOauthConfig, @onAuthentication
 
