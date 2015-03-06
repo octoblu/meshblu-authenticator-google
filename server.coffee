@@ -54,6 +54,10 @@ meshbluConn = meshblu.createConnection meshbluJSON
 
 meshbluConn.on 'ready', =>
   debug 'Connected to meshblu'
+
+  meshbluConn.whoami {}, (device) ->
+    conn.setPrivateKey(device.privateKey) unless conn.privateKey
+
   app.listen port, =>
     debug "Meshblu Google Authenticator..."
     debug "Listening at localhost:#{port}"
