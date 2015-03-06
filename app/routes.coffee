@@ -13,7 +13,8 @@ class Router
     @app.get '/oauthcallback', passport.authenticate('google', { failureRedirect: '/login' }), @afterPassportLogin
 
   afterPassportLogin: (request, response) =>
-    {callbackUrl} = request.session
+    {callbackUrl} = request.cookies
+    delete request.cookies.callbackUrl
     return response.status(401).send(new Error 'Invalid User') unless request.user
     return response.status(201).send(request.user) unless callbackUrl?
     uriParams = url.parse callbackUrl
@@ -26,7 +27,10 @@ class Router
     response.render 'index'
 
   storeCallbackUrl: (request, response, next) =>
-    request.session.callbackUrl = request.query.callbackUrl
+    if request.query.callbackUrl?
+      request.cookies.callbackUrl = request.query.callbackUrl
+    else
+      delete request.cookies.callbackUrl
     next()
 
 module.exports = Router
