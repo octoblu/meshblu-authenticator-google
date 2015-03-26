@@ -3,10 +3,17 @@ sudo: false
 node_js:
 - '0.10'
 deploy:
-  provider: opsworks
+- provider: opsworks
   access_key_id: AKIAIT4X4NDGM2WVL6VA
   secret_access_key:
     secure: nxFl+xJANUzvxmL5kvoU6MGzEaJxmfjF/pUTiUudMRiXplhTc1pEKQR8SYPwURLPS4kMiMF9Yut3oeRvXJIJohJ8TNnlPcritk/7QUyPNa/4SELXVRjGYRSIIH98Z01PbqOq0cevmGBDzYvxp4NjR4MNLPBnHwht6SsgmgpDcl0=
   app-id: 2609238c-7a8c-4146-9d2c-9ba4369c9238
   on:
     branch: master
+- provider: opsworks
+  access_key_id: AKIAIT4X4NDGM2WVL6VA
+  secret_access_key:
+    secure: nxFl+xJANUzvxmL5kvoU6MGzEaJxmfjF/pUTiUudMRiXplhTc1pEKQR8SYPwURLPS4kMiMF9Yut3oeRvXJIJohJ8TNnlPcritk/7QUyPNa/4SELXVRjGYRSIIH98Z01PbqOq0cevmGBDzYvxp4NjR4MNLPBnHwht6SsgmgpDcl0=
+  app-id: 4a231ec9-9be5-4ca5-a0ad-5aaafdc7d23c
+  on:
+    branch: staging
