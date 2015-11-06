@@ -7,15 +7,17 @@ session = require 'cookie-session'
 passport = require 'passport'
 Router = require './app/routes'
 Config = require './app/config'
+meshbluHealthcheck = require 'express-meshblu-healthcheck'
 MeshbluDB = require 'meshblu-db'
 airbrake = require('airbrake').createClient process.env.AIRBRAKE_API_KEY
 debug = require('debug')('meshblu-google-authenticator:server')
 
-port = process.env.MESHBLU_GOOGLE_AUTHENTICATOR_PORT ? 8008
+port = process.env.MESHBLU_GOOGLE_AUTHENTICATOR_PORT ? 80
 
 app = express()
 app.use morgan('dev')
 app.use errorHandler()
+app.use meshbluHealthcheck()
 app.use airbrake.expressHandler()
 app.use bodyParser.json()
 app.use bodyParser.urlencoded(extended: true)
