@@ -55,7 +55,7 @@ catch
 
 meshbluHttp = new MeshbluDB meshbluJSON
 
-meshbluHttp.findOne uuid: meshbluJSON.uuid, (error, device) ->
+meshbluHttp.device meshbluJSON.uuid, (error, device) ->
   if error?
     console.error error.message, error.stack
     process.exit 1
