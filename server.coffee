@@ -8,7 +8,7 @@ passport = require 'passport'
 Router = require './app/routes'
 Config = require './app/config'
 meshbluHealthcheck = require 'express-meshblu-healthcheck'
-MeshbluDB = require 'meshblu-db'
+MeshbluHttp = require 'meshblu-Http'
 airbrake = require('airbrake').createClient process.env.AIRBRAKE_API_KEY
 debug = require('debug')('meshblu-google-authenticator:server')
 
@@ -53,12 +53,16 @@ catch
     port:   process.env.MESHBLU_PORT
     name:   'Google Authenticator'
 
-meshbludb = new MeshbluDB meshbluJSON
+meshbluHttp = new MeshbluDB meshbluJSON
 
-meshbludb.findOne uuid: meshbluJSON.uuid, (error, device) ->
-  meshbludb.setPrivateKey(device.privateKey) unless meshbludb.privateKey
+meshbluHttp.findOne uuid: meshbluJSON.uuid, (error, device) ->
+  if error?
+    console.error error.message, error.stack
+    process.exit 1
 
-config = new Config meshbludb, meshbluJSON
+  meshbluHttp.setPrivateKey(device.privateKey) unless meshbluHttp.privateKey
+
+config = new Config {meshbluHttp, meshbluJSON}
 config.register()
 
 router = new Router app
