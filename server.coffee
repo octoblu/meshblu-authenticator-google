@@ -71,3 +71,7 @@ router.register()
 app.listen port, =>
   debug "Meshblu Google Authenticator..."
   debug "Listening at localhost:#{port}"
+
+process.on 'SIGTERM', =>
+  console.log 'SIGTERM caught, exiting'
+  process.exit 0
