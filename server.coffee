@@ -15,9 +15,9 @@ debug = require('debug')('meshblu-google-authenticator:server')
 port = process.env.MESHBLU_GOOGLE_AUTHENTICATOR_PORT ? 80
 
 app = express()
+app.use meshbluHealthcheck()
 app.use morgan('dev')
 app.use errorHandler()
-app.use meshbluHealthcheck()
 app.use airbrake.expressHandler()
 app.use bodyParser.json()
 app.use bodyParser.urlencoded(extended: true)
