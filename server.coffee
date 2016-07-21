@@ -1,13 +1,14 @@
+express            = require 'express'
+sendError          = require 'express-send-error'
+meshbluHealthcheck = require 'express-meshblu-healthcheck'
+packageVersion     = require 'express-package-version'
 bodyParser         = require 'body-parser'
 cookieParser       = require 'cookie-parser'
-express            = require 'express'
-meshbluHealthcheck = require 'express-meshblu-healthcheck'
-MeshbluHttp        = require 'meshblu-http'
-morgan             = require 'morgan'
-OctobluRaven       = require 'octoblu-raven'
-packageVersion     = require 'express-package-version'
-passport           = require 'passport'
 session            = require 'cookie-session'
+passport           = require 'passport'
+OctobluRaven       = require 'octoblu-raven'
+morgan             = require 'morgan'
+MeshbluHttp        = require 'meshblu-http'
 
 Router = require './app/routes'
 Config = require './app/config'
@@ -15,11 +16,12 @@ debug = require('debug')('meshblu-google-authenticator:server')
 
 port = process.env.MESHBLU_GOOGLE_AUTHENTICATOR_PORT ? 80
 
-ravenExpress = new OctobluRaven().express()
+octobluRaven = new OctobluRaven()
+octobluRaven.patchGlobal()
 
 app = express()
-app.use ravenExpress.requestHandler()
-app.use ravenExpress.errorHandler()
+app.use octobluRaven.express().handleErrors()
+app.use sendError()
 
 app.use meshbluHealthcheck()
 app.use packageVersion()
