@@ -29,3 +29,4 @@ node_modules
 *.sublime-workspace
 meshblu.json
 meshblu-google-authenticator.sublime-workspace
+.nyc_output
